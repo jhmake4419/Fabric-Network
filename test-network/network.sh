@@ -10,17 +10,32 @@
 # peer each, and a single node Raft ordering service. Users can also use this
 # script to create a channel deploy a chaincode on the channel
 #
+# 어플리케이션과 스마트 컨트랙트를 테스팅하기 위한하이퍼레저 페브릭 네트워크를 구축하는 스크립트이다.
+# 두개의 org로 구성되어 있으며 각각 하나의 피어가 포함되어 있다. Raft ordering service가 하나 존재한다. 
+# 체인코드를 channel에 할당하기 위해 사용할 수 있다.
+#
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
+# 올바른 바이너리 데이터를 선택하도록 /bin 경로를 PATH에 추가한다. 
 # this may be commented out to resolve installed version of tools if desired
+# 원하는 경우 설치된 도구의 버전을 해결하기 위해 주석 처리 할 수 있다. <-- 무슨 말인지 모르겠다.
+#
 export PATH=${PWD}/../bin:$PATH
+# bin 경로 추가
 export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
 
 . scripts/utils.sh
 
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+
 # Obtain CONTAINER_IDS and remove them
+# 컨테이너 ID를 얻어서 컨테이너를 제거한다.
 # TODO Might want to make this optional - could clear other containers
+# 다른 컨테이너를 제거할 수 있다.
 # This function is called when you bring a network down
+# 이 함수는 네트워크를 다운시킬때 사용된다.
 function clearContainers() {
   CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /dev-peer.*/) {print $1}')
   if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
@@ -28,11 +43,28 @@ function clearContainers() {
   else
     docker rm -f $CONTAINER_IDS
   fi
-}
+}  # 컨테이너 제거 함수
+
+# 위
+# 위
+# 위
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 그렇다면 네트워크 다운 / 종료의 차이가 뭘까?
+# 아래
+# 아래
+# 아래
 
 # Delete any images that were generated as a part of this setup
+# 이 설정의 일부로 생성된 이미지들을 삭제합니다.
 # specifically the following images are often left behind:
+# 특히 다음의 이미지들이 남는다
 # This function is called when you bring the network down
+# 이 함수는 네트워크를 종료할때 사용된다.
 function removeUnwantedImages() {
   DOCKER_IMAGE_IDS=$(docker images | awk '($1 ~ /dev-peer.*/) {print $3}')
   if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
@@ -40,14 +72,27 @@ function removeUnwantedImages() {
   else
     docker rmi -f $DOCKER_IMAGE_IDS
   fi
-}
+} # 네트워크 종료 함수
+
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
 
 # Versions of fabric known not to work with the test network
+# 다음 버전에서는 테스트 네트워크가 동작하지 않는다
 NONWORKING_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 
+
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+
 # Do some basic sanity checking to make sure that the appropriate versions of fabric
+# 적절한 버전의 패브릭이 있는지 검사한다.
 # binaries/images are available. In the future, additional checking for the presence
+# 바이너리/이미지를 사용할 수 있다. 미래에 추가적인 존재 여부 확인을 한다. <--- 뭔말인지 모르겠다
 # of go or other items could be added.
+# 이동 또는 기타 아이템들을 추가 할 수 있다. <---- 뭔말인지 모르겠다.
 function checkPrereqs() {
   ## Check if your have cloned the peer binaries and configuration files.
   peer version > /dev/null 2>&1
@@ -105,24 +150,39 @@ function checkPrereqs() {
   fi
 }
 
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+
 # Before you can bring up a network, each organization needs to generate the crypto
-# material that will define that organization on the network. Because Hyperledger
-# Fabric is a permissioned blockchain, each node and user on the network needs to
-# use certificates and keys to sign and verify its actions. In addition, each user
-# needs to belong to an organization that is recognized as a member of the network.
-# You can use the Cryptogen tool or Fabric CAs to generate the organization crypto
-# material.
+# 네트워크를 시작하기 전에 각 조직은 암호화폐를 생성해야한다.
+# material that will define that organization on the network. 
+# 암호화폐란 네트워크에서 해당 조직을 정의하는 자료 --- 여기서 번역이 잘못 되었는데 암호화폐가 아닌 크립토 관련 정보라고 퉁 치면된다.
+# Because Hyperledger Fabric is a permissioned blockchain, each node and user on 
+# the network needs to use certificates and keys to sign and verify its actions. 
+# 하이퍼레저 패브릭은 허가형 블록체인이기 때문이다. 각 노드와 사용자는 인증서와 키가 필요하다. 확인하고 검증하는 곳에
+# In addition, each user needs to belong to an organization that is recognized as 
+# a member of the network. You can use the Cryptogen tool or Fabric CAs to generate 
+# the organization crypto material.
+# 게다가 각 유저는 조직에 속할 필요가 있다. 네트워크의 멤버를 인식하기 위해서 (네트워크에 어떤 멤버가 있는지 파악할 필요가 있다는 의미인듯)
+# 또한 크립토 도구또는 페브릭 CA를 사용할 수 있다. 조직의 크립토 정보를 생성하기 위해서
 
 # By default, the sample network uses cryptogen. Cryptogen is a tool that is
+# 기본적으로 셈플 네트워크는 크립도젠을 사용합니다. 크립토젠은 도구이다.
 # meant for development and testing that can quickly create the certificates and keys
+# 크립토젠은 페브릭 네트워크에 의해서 사용될 수 있는 인증서와 키를 빠르게 생성할 수 있는 테스팅과 개발도구이다.
 # that can be consumed by a Fabric network. The cryptogen tool consumes a series
+# 크립토 젠 툴은 인증 파일의 시리즈를 사용한다. organizations/cryptogen 디렉토리 안에 있는 각 조직들을 위해서
 # of configuration files for each organization in the "organizations/cryptogen"
 # directory. Cryptogen uses the files to generate the crypto  material for each
+# 크립토 젠은 organizations/cryptogen안의 organization파일을들 사용하여 크립토 정보를 생성한다. 
 # org in the "organizations" directory.
 
 # You can also Fabric CAs to generate the crypto material. CAs sign the certificates
+# 또한 페브릭 CA를 사용하여 암호화 자료를 생성할 수 있다. CA는 키와 인증서를 확인한다.  CA들은 유효한 신뢰할 수있는 루트를 생성한다. 각 조직안에
 # and keys that they generate to create a valid root of trust for each organization.
 # The script uses Docker Compose to bring up three CAs, one for each peer organization
+# 스크랍트는 도커 컴포즈를 사용한다. CA를 가져오기 위해서. 각 피어 조직과 오더링 조직에 대해 하나씩의 CA 3개를 가져온다.
 # and the ordering organization. The configuration file for creating the Fabric CA
 # servers are in the "organizations/fabric-ca" directory. Within the same directory,
 # the "registerEnroll.sh" script uses the Fabric CA client to create the identities,
@@ -213,11 +273,18 @@ function createOrgs() {
 # Once you create the organization crypto material, you need to create the
 # genesis block of the orderer system channel. This block is required to bring
 # up any orderer nodes and create any application channels.
+# 크립토 원소(어떤 피어, 어떤 오더러, 채널에 어떤 피어들이 참여할 것인지 등에 대한 세부내용 정의)들을 생성한 뒤 오더러 시스템의 채널에 제네시스 블록(정의한 내용들을 가지고 있는다)을 생성해야한다. 
+# 제네시스 블록은 오더러 노드를 가져오고 어플리케이션 채널을 생성하는데 필요하다.
 
-# The configtxgen tool is used to create the genesis block. Configtxgen consumes a
-# "configtx.yaml" file that contains the definitions for the sample network. The
-# genesis block is defined using the "TwoOrgsOrdererGenesis" profile at the bottom
-# of the file. This profile defines a sample consortium, "SampleConsortium",
+
+# The configtxgen tool is used to create the genesis block. 
+# configtxgen tool은 제네시스 블록을 만드는데 필요하다.
+# Configtxgen consumes a "configtx.yaml" file that contains the definitions for the sample network.
+# Configtxgen은 configtx.yaml을 사용해서 셈플 네트워크에 대한 정보를 가진 제네시스 블록을 만들게 된다. 
+# the genesis block is defined using the "TwoOrgsOrdererGenesis" profile at the bottom
+# of the file.
+# 제네시스 블록은  TwoOrgsOrdererGenesis 프로파일을 사용해서 정의된다. (아마 configtx.yaml파일 안의 TwoOrgsOrdererGenesis 부분에 정의된다는 의미인거같다. )
+# This profile defines a sample consortium, "SampleConsortium",
 # consisting of our two Peer Orgs. This consortium defines which organizations are
 # recognized as members of the network. The peer and ordering organizations are defined
 # in the "Profiles" section at the top of the file. As part of each organization
